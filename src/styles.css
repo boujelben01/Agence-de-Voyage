@@ -1,1 +1,466 @@
-/* You can add global styles to this file, and also import other style files */
+@import 'tailwindcss';
+
+/*
+ * Identité visuelle : bleu océan + accent sable, sobre et voyageuse.
+ * Tout passe par ces variables : couleurs, échelle typographique, arrondis, ombres, animations.
+ * Utilitaires générés : bg-ocean-700, text-sand-300, text-h2, rounded-card, shadow-soft…
+ */
+@theme {
+  /* Pas de police distante (aucun CDN) : pile système, rendu net sous Windows, macOS et Linux. */
+  --font-sans:
+    ui-sans-serif, system-ui, -apple-system, 'Segoe UI Variable Text', 'Segoe UI', Roboto,
+    'Helvetica Neue', Arial, sans-serif;
+
+  /* Bleu océan (principal). Texte blanc AA à partir de 600 ; 700+ pour le petit texte. */
+  --color-ocean-50: #f0f8fc;
+  --color-ocean-100: #dcf0f8;
+  --color-ocean-200: #b9e0f0;
+  --color-ocean-300: #86c8e3;
+  --color-ocean-400: #4aa8cf;
+  --color-ocean-500: #2488b5;
+  --color-ocean-600: #166d99;
+  --color-ocean-700: #145779;
+  --color-ocean-800: #154a65;
+  --color-ocean-900: #143e55;
+  --color-ocean-950: #0b2535;
+
+  /* Sable (accent chaud). Texte ocean-950 sur sand-300/400 : contraste AAA.
+     sand-400 et sand-500 : décor uniquement (jamais de texte ni d'information). */
+  --color-sand-50: #fdf8ee;
+  --color-sand-100: #faefd4;
+  --color-sand-200: #f5dfa9;
+  --color-sand-300: #efca77;
+  --color-sand-400: #e9b24d;
+  --color-sand-500: #de9a2c;
+  --color-sand-700: #8a561a;
+
+  /* Échelle typographique : taille, interligne, graisse et approche vont ensemble. */
+  --text-display: clamp(2.5rem, 1.55rem + 4vw, 4.25rem);
+  --text-display--line-height: 1.04;
+  --text-display--letter-spacing: -0.035em;
+  --text-display--font-weight: 700;
+  --text-h1: clamp(2rem, 1.45rem + 2.4vw, 3.125rem);
+  --text-h1--line-height: 1.1;
+  --text-h1--letter-spacing: -0.028em;
+  --text-h1--font-weight: 700;
+  --text-h2: clamp(1.625rem, 1.3rem + 1.4vw, 2.375rem);
+  --text-h2--line-height: 1.18;
+  --text-h2--letter-spacing: -0.022em;
+  --text-h2--font-weight: 650;
+  --text-h3: 1.25rem;
+  --text-h3--line-height: 1.35;
+  --text-h3--letter-spacing: -0.012em;
+  --text-h3--font-weight: 600;
+  --text-lead: 1.125rem;
+  --text-lead--line-height: 1.7;
+  --text-body: 1rem;
+  --text-body--line-height: 1.65;
+  --text-caption: 0.8125rem;
+  --text-caption--line-height: 1.45;
+  --text-caption--letter-spacing: 0.005em;
+
+  /* Arrondis : grands et doux. */
+  --radius-field: 0.875rem;
+  --radius-card: 1.5rem;
+  --radius-panel: 2rem;
+
+  /* Ombres douces teintées océan. */
+  --shadow-soft: 0 1px 2px rgb(11 37 53 / 0.04), 0 8px 24px -8px rgb(11 37 53 / 0.12);
+  --shadow-lift: 0 2px 4px rgb(11 37 53 / 0.05), 0 20px 40px -16px rgb(11 37 53 / 0.28);
+
+  /* Animations légères (toasts, boîtes de dialogue, apparition au défilement). */
+  --animate-toast-in: toast-in 220ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  --animate-toast-out: toast-out 160ms ease-in both;
+
+  @keyframes toast-in {
+    from {
+      opacity: 0;
+      transform: translateY(0.75rem) scale(0.98);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  @keyframes toast-out {
+    from {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+    to {
+      opacity: 0;
+      transform: translateY(0.5rem) scale(0.98);
+    }
+  }
+}
+
+@keyframes dialog-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.75rem) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes reveal-up {
+  from {
+    opacity: 0;
+    transform: translateY(1.25rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 5rem;
+    -webkit-font-smoothing: antialiased;
+    text-size-adjust: 100%;
+  }
+
+  /* Mouvement réduit : plus d'animations ni de transitions longues, défilement instantané. */
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+
+  body {
+    font-family: var(--font-sans);
+    font-size: var(--text-body);
+    line-height: var(--text-body--line-height);
+    background-color: #ffffff;
+    color: var(--color-ocean-950);
+  }
+
+  /* Focus visible uniforme ; sable sur les surfaces sombres (.surface-dark). */
+  :focus-visible {
+    outline: 2px solid var(--color-ocean-600);
+    outline-offset: 2px;
+  }
+  .surface-dark :focus-visible {
+    outline-color: var(--color-sand-300);
+  }
+  /* Cible de focus programmatique (<main tabindex="-1">) : pas de cadre autour de la page. */
+  [tabindex='-1']:focus {
+    outline: none;
+  }
+
+  ::selection {
+    background-color: var(--color-sand-200);
+    color: var(--color-ocean-950);
+  }
+}
+
+@layer components {
+  /* ---------- Mise en page ---------- */
+  .container-page {
+    @apply mx-auto w-full max-w-6xl px-4 sm:px-6;
+  }
+  .container-narrow {
+    @apply mx-auto w-full max-w-5xl px-4 sm:px-6;
+  }
+  /* Rythme vertical standard des sections. */
+  .section {
+    padding-block: clamp(3.5rem, 2rem + 5vw, 6.5rem);
+  }
+  .section-tight {
+    padding-block: clamp(2rem, 1.25rem + 3vw, 4rem);
+  }
+
+  /* ---------- Typographie ---------- */
+  .eyebrow {
+    @apply inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-sand-700;
+  }
+  .eyebrow::before {
+    content: '';
+    @apply h-px w-6 bg-sand-400;
+  }
+  .surface-dark .eyebrow {
+    @apply text-sand-300;
+  }
+  .section-title {
+    @apply text-balance text-h2 text-ocean-950;
+  }
+  .section-lead {
+    @apply mt-3 max-w-2xl text-lead text-ocean-800;
+  }
+
+  /* ---------- En-tête de page ---------- */
+  .page-header {
+    @apply relative overflow-hidden border-b border-ocean-100 bg-linear-to-b from-ocean-50 to-white;
+  }
+  .page-header::after {
+    content: '';
+    @apply pointer-events-none absolute -right-20 -top-24 h-72 w-72 rounded-full bg-sand-100/70;
+  }
+  .page-header-title {
+    @apply mt-3 text-balance text-h1 text-ocean-950;
+  }
+  .page-header-desc {
+    @apply mt-3 max-w-2xl text-lead text-ocean-800;
+  }
+
+  /* ---------- Boutons ---------- */
+  .btn-primary,
+  .btn-sand,
+  .btn-outline,
+  .btn-ghost,
+  .btn-danger {
+    @apply inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-base font-semibold leading-tight no-underline transition duration-150 active:translate-y-px disabled:cursor-not-allowed disabled:opacity-60 disabled:active:translate-y-0;
+  }
+  .btn-primary {
+    @apply bg-ocean-700 text-white shadow-soft hover:bg-ocean-800 active:bg-ocean-900;
+  }
+  .btn-sand {
+    @apply bg-sand-300 text-ocean-950 shadow-soft hover:bg-sand-200 active:bg-sand-400;
+  }
+  .btn-outline {
+    @apply border border-ocean-300 bg-white text-ocean-900 hover:border-ocean-500 hover:bg-ocean-50 active:bg-ocean-100;
+  }
+  .btn-ghost {
+    @apply text-ocean-800 hover:bg-ocean-50 active:bg-ocean-100;
+  }
+  .btn-danger {
+    @apply bg-red-700 text-white shadow-soft hover:bg-red-800 active:bg-red-900;
+  }
+  /* Variante discrète : actions de ligne, dialogues. */
+  .btn-sm {
+    @apply px-4 py-2 text-sm;
+  }
+  /* Bouton carré à icône : le libellé reste dans un .sr-only. */
+  .btn-icon {
+    @apply inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-ocean-300 bg-white text-ocean-800 transition duration-150 hover:border-ocean-500 hover:bg-ocean-50 active:bg-ocean-100 disabled:cursor-not-allowed disabled:opacity-60;
+  }
+  .btn-icon-danger {
+    @apply border-red-300 text-red-800 hover:border-red-600 hover:bg-red-50 active:bg-red-100;
+  }
+  /* Sur surface sombre, le bouton « contour » devient clair. */
+  .surface-dark .btn-outline {
+    @apply border-white/45 bg-transparent text-white hover:border-white hover:bg-white/10 active:bg-white/15;
+  }
+
+  /* ---------- Cartes et badges ---------- */
+  .card {
+    @apply rounded-card bg-white shadow-soft ring-1 ring-ocean-100;
+  }
+  .card-interactive {
+    @apply transition-shadow duration-300 hover:shadow-lift focus-within:shadow-lift;
+  }
+
+  .badge,
+  .badge-success,
+  .badge-danger,
+  .badge-neutral,
+  .badge-accent {
+    @apply inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-semibold leading-5;
+  }
+  .badge-success {
+    @apply bg-emerald-100 text-emerald-900;
+  }
+  .badge-danger {
+    @apply bg-red-100 text-red-900;
+  }
+  .badge-neutral {
+    @apply bg-ocean-100 text-ocean-900;
+  }
+  .badge-accent {
+    @apply bg-sand-100 text-sand-700;
+  }
+
+  /* ---------- Formulaires ---------- */
+  .field-input {
+    @apply w-full rounded-field border border-ocean-500 bg-white px-4 py-3 text-base text-ocean-950 shadow-soft transition placeholder:text-ocean-600 hover:border-ocean-600 focus:border-ocean-600 focus:outline-none focus:ring-4 focus:ring-ocean-600/20 disabled:cursor-not-allowed disabled:bg-ocean-50 disabled:opacity-70;
+  }
+  /* L'icône est positionnée à gauche par le gabarit : on réserve la place. */
+  .field-input-icon {
+    @apply pl-11;
+  }
+  .field-input[aria-invalid='true'] {
+    @apply border-red-600 focus:border-red-600 focus:ring-red-600/20;
+  }
+  select.field-input {
+    @apply appearance-none pr-10;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%23145779' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 8l5 5 5-5'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.875rem center;
+    background-size: 1.1rem;
+  }
+  .field-label {
+    @apply mb-1.5 block text-sm font-medium text-ocean-900;
+  }
+  .field-hint {
+    @apply mt-1.5 text-sm text-ocean-800;
+  }
+  .field-error {
+    @apply mt-1.5 min-h-5 text-sm font-medium text-red-700;
+  }
+  /* Bouton œil du champ mot de passe. */
+  .field-toggle {
+    @apply absolute right-2 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full text-ocean-800 transition-colors hover:bg-ocean-50;
+  }
+  /* Fond de bloc de formulaire. */
+  .form-section {
+    @apply min-w-0 space-y-5 border-t border-ocean-100 pt-6 first:border-t-0 first:pt-0;
+  }
+
+  /* ---------- Messages ---------- */
+  .alert {
+    @apply flex items-start gap-3 rounded-field px-4 py-3 text-sm leading-relaxed ring-1;
+  }
+  .alert-error {
+    @apply bg-red-50 text-red-900 ring-red-200;
+  }
+
+  /* ---------- États vides, squelettes ---------- */
+  .empty-state {
+    @apply rounded-panel bg-ocean-50 px-6 py-12 text-center ring-1 ring-ocean-100 sm:px-10 sm:py-14;
+  }
+  .empty-state-error {
+    @apply bg-red-50 ring-red-200;
+  }
+  .empty-state-icon {
+    @apply mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-white text-ocean-700 shadow-soft ring-1 ring-ocean-100;
+  }
+  .empty-state-error .empty-state-icon {
+    @apply text-red-700 ring-red-200;
+  }
+  .skeleton {
+    @apply rounded-field bg-ocean-100;
+  }
+
+  /* ---------- Onglets ---------- */
+  .tab-list {
+    @apply flex gap-1 overflow-x-auto;
+  }
+  .tab {
+    @apply shrink-0 rounded-t-field border-b-[3px] border-transparent px-5 py-3 text-[0.9375rem] font-semibold text-ocean-800 transition-colors hover:bg-white/70;
+  }
+  .tab[aria-selected='true'] {
+    @apply border-ocean-700 text-ocean-950;
+  }
+  .tab:focus-visible {
+    outline-offset: -2px;
+  }
+
+  /* ---------- Boîtes de dialogue (natives) ---------- */
+  .dialog {
+    @apply m-auto w-[calc(100%-2rem)] rounded-card bg-white p-0 text-ocean-950 shadow-lift backdrop:bg-ocean-950/60 backdrop:backdrop-blur-sm;
+  }
+  .dialog[open] {
+    animation: dialog-in 200ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .dialog-title {
+    @apply text-h3 text-ocean-950;
+  }
+
+  /* ---------- Tableaux d'administration ---------- */
+  .table-wrap {
+    @apply relative max-h-[70svh] overflow-auto rounded-card bg-white shadow-soft ring-1 ring-ocean-100;
+  }
+  .data-table {
+    @apply w-full min-w-[var(--table-min,40rem)] border-separate border-spacing-0 text-left text-sm;
+  }
+  .data-table thead th {
+    @apply sticky top-0 z-10 border-b border-ocean-100 bg-ocean-50 px-4 py-3 text-xs font-semibold uppercase tracking-wider text-ocean-800;
+  }
+  .data-table tbody th,
+  .data-table tbody td {
+    @apply border-b border-ocean-100 px-4 py-3 align-middle;
+  }
+  .data-table tbody tr:last-child > * {
+    @apply border-b-0;
+  }
+  .data-table tbody tr:nth-child(even) > * {
+    @apply bg-ocean-50/50;
+  }
+  .data-table tbody tr:hover > * {
+    @apply bg-ocean-50;
+  }
+  .data-table tbody th {
+    @apply font-medium text-ocean-950;
+  }
+  .data-table td {
+    @apply text-ocean-900;
+  }
+
+  /* Version mobile : chaque ligne devient une carte, l'en-tête reste lu par les lecteurs d'écran. */
+  @media (max-width: 47.999rem) {
+    .table-wrap {
+      @apply max-h-none overflow-visible rounded-none bg-transparent shadow-none ring-0;
+    }
+    .data-table {
+      @apply block min-w-0;
+    }
+    .data-table thead {
+      @apply sr-only;
+    }
+    .data-table tbody {
+      @apply block space-y-3;
+    }
+    .data-table tbody tr {
+      @apply relative block rounded-card bg-white p-4 shadow-soft ring-1 ring-ocean-100;
+    }
+    .data-table tbody tr:nth-child(even) > *,
+    .data-table tbody tr:hover > * {
+      @apply bg-transparent;
+    }
+    .data-table tbody th,
+    .data-table tbody td {
+      @apply flex items-center justify-between gap-4 border-b-0 px-0 py-1.5 text-right;
+    }
+    .data-table tbody th {
+      @apply block pb-2 text-left text-base;
+    }
+    .data-table td[data-label]::before {
+      content: attr(data-label);
+      @apply text-left text-xs font-semibold uppercase tracking-wider text-ocean-800;
+    }
+    .data-table td.cell-image {
+      @apply hidden;
+    }
+    .data-table td.cell-actions {
+      @apply justify-end border-t border-ocean-100 pt-3;
+    }
+  }
+
+  /* ---------- Cartes de synthèse (tableau de bord) ---------- */
+  .stat-card {
+    @apply rounded-card bg-white p-5 shadow-soft ring-1 ring-ocean-100 sm:p-6;
+  }
+  .stat-label {
+    @apply text-sm font-medium text-ocean-800;
+  }
+  .stat-value {
+    @apply mt-1 text-3xl font-semibold tracking-tight text-ocean-950;
+  }
+
+  /* ---------- Apparition au défilement (CSS seul, sans effet si non pris en charge) ---------- */
+  @supports (animation-timeline: view()) {
+    .reveal {
+      animation: reveal-up linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 40%;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .reveal {
+        animation: none !important;
+      }
+    }
+  }
+}

@@ -6,7 +6,9 @@
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "seed:users": "node scripts/seed-users.js",
+    "seed:catalog": "node scripts/seed-catalog.js"
   },
   "private": true,
   "packageManager": "npm@11.19.0",
@@ -14,9 +16,11 @@
     "@angular/common": "^22.2.0",
     "@angular/compiler": "^22.2.0",
     "@angular/core": "^22.2.0",
+    "@angular/fire": "^21.0.0-rc.2",
     "@angular/forms": "^22.2.0",
     "@angular/platform-browser": "^22.2.0",
     "@angular/router": "^22.2.0",
+    "firebase": "12.19.0",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0"
   },
@@ -24,9 +28,14 @@
     "@angular/build": "^22.2.2",
     "@angular/cli": "^22.2.2",
     "@angular/compiler-cli": "^22.2.0",
+    "@tailwindcss/postcss": "^4.3.3",
+    "firebase-admin": "^14.5.0",
     "jsdom": "^30.0.0",
+    "postcss": "^8.5.30",
     "prettier": "^3.8.1",
+    "tailwindcss": "^4.3.3",
     "typescript": "~6.0.2",
+    "vite": "^8.3.0",
     "vitest": "^5.0.0"
   }
 }

@@ -1,0 +1,124 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // Le rôle vient uniquement du document users/{uid}, jamais du client.
+    function isAdmin() {
+      return isSignedIn()
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // Catalogue : lecture publique, écriture admin.
+    match /continents/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /tours/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /accommodations/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /reservations/{id} {
+      // Création : le client ne peut réserver que pour lui-même, avec un total cohérent.
+      // createdAt doit être l'horodatage serveur (serverTimestamp).
+      function isValidNewReservation() {
+        let d = request.resource.data;
+        return d.keys().hasOnly([
+            'userId', 'userEmail', 'tourId', 'tourTitle', 'tourImage', 'country',
+            'startDate', 'endDate', 'travelers', 'pricePerPerson', 'totalPrice',
+            'status', 'createdAt'
+          ])
+          && d.keys().hasAll([
+            'userId', 'userEmail', 'tourId', 'tourTitle', 'tourImage', 'country',
+            'startDate', 'endDate', 'travelers', 'pricePerPerson', 'totalPrice',
+            'status', 'createdAt'
+          ])
+          && d.userId == request.auth.uid
+          && d.userEmail == request.auth.token.email
+          && d.status == 'confirmed'
+          && d.travelers is int
+          && d.travelers >= 1
+          && d.travelers <= 10
+          && d.pricePerPerson is number
+          && d.pricePerPerson >= 0
+          && d.totalPrice is number
+          && d.totalPrice == d.pricePerPerson * d.travelers
+          && d.tourId is string
+          // Le prix par personne doit être celui du catalogue, pas une valeur choisie par le client.
+          && exists(/databases/$(database)/documents/tours/$(d.tourId))
+          && d.pricePerPerson == get(/databases/$(database)/documents/tours/$(d.tourId)).data.price
+          && d.tourTitle is string
+          && d.tourImage is string
+          && d.country is string
+          && d.startDate is string
+          && d.endDate is string
+          && d.createdAt == request.time;
+      }
+
+      allow create: if isSignedIn() && isValidNewReservation();
+
+      allow read: if isAdmin()
+        || (isSignedIn() && resource.data.userId == request.auth.uid);
+
+      // Mise à jour : uniquement l'annulation (confirmed -> cancelled), seul champ modifié = status.
+      allow update: if isSignedIn()
+        && (resource.data.userId == request.auth.uid || isAdmin())
+        && resource.data.status == 'confirmed'
+        && request.resource.data.status == 'cancelled'
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status']);
+
+      allow delete: if isAdmin();
+    }
+
+    match /users/{uid} {
+      // inscription : le client ne peut créer que son propre profil, avec le rôle 'user'
+      allow create: if isSignedIn()
+        && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['name', 'email', 'role'])
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0
+        && request.resource.data.name.size() <= 100
+        && request.resource.data.role == 'user'
+        && request.resource.data.email == request.auth.token.email;
+
+      allow read: if isAdmin() || (isSignedIn() && request.auth.uid == uid);
+
+      // le rôle et l'e-mail ne sont pas modifiables depuis le client
+      allow update: if (isAdmin() || (isSignedIn() && request.auth.uid == uid))
+        && request.resource.data.keys().hasOnly(['name', 'email', 'role'])
+        && request.resource.data.role == resource.data.role
+        && request.resource.data.email == resource.data.email;
+
+      allow delete: if false;
+
+      // Favoris : visibles et modifiables par leur seul propriétaire. Les règles ne se propagent
+      // pas aux sous-collections : la règle admin de users/{uid} n'ouvre donc pas ces documents.
+      match /favorites/{tourId} {
+        allow read: if isSignedIn() && request.auth.uid == uid;
+        allow create: if isSignedIn() && request.auth.uid == uid
+          && request.resource.data.keys().hasOnly(['tourId', 'createdAt'])
+          && request.resource.data.tourId == tourId
+          && request.resource.data.createdAt == request.time;
+        allow delete: if isSignedIn() && request.auth.uid == uid;
+        allow update: if false;
+      }
+    }
+
+    // Tout le reste est refusé.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
